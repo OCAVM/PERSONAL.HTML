@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Base de Datos de Personal</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input { margin: 5px 0; padding: 6px; width: 100%; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    #buscador { margin-top: 15px; padding: 10px; width: 100%; font-size: 16px; }
+    button { padding: 10px 15px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>Formulario de Registro de Personal</h2>
+
+  <div>
+    <input type="text" id="nombre" placeholder="Nombre">
+    <input type="number" id="edad" placeholder="Edad">
+    <input type="email" id="correo" placeholder="Correo electrónico">
+    <input type="tel" id="celular" placeholder="Número de celular">
+    <input type="text" id="id" placeholder="ID">
+    <input type="text" id="turno" placeholder="Turno">
+    <input type="text" id="zona" placeholder="Zona">
+    <button onclick="agregarPersonal()">Agregar</button>
+  </div>
+
+  <h3>Buscar personal</h3>
+  <input type="text" id="buscador" placeholder="Buscar por nombre, zona, ID, etc.">
+
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Edad</th>
+        <th>Correo electrónico</th>
+        <th>Número de celular</th>
+        <th>ID</th>
+        <th>Turno</th>
+        <th>Zona</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    function agregarPersonal() {
+      const datos = [
+        "nombre", "edad", "correo", "celular",
+        "id", "turno", "zona"
+      ].map(id => document.getElementById(id).value.trim());
+
+      if (datos.some(d => d === "")) {
+        alert("Por favor llena todos los campos.");
+        return;
+      }
+
+      const fila = document.createElement("tr");
+      datos.forEach(dato => {
+        const td = document.createElement("td");
+        td.textContent = dato;
+        fila.appendChild(td);
+      });
+
+      document.querySelector("#tabla tbody").appendChild(fila);
+
+      // Limpiar campos
+      datos.forEach((_, i) => document.getElementById([
+        "nombre", "edad", "correo", "celular",
+        "id", "turno", "zona"
+      ][i]).value = "");
+    }
+
+    // Buscador en tiempo real
+    document.getElementById("buscador").addEventListener("keyup", function () {
+      const filtro = this.value.toLowerCase();
+      document.querySelectorAll("#tabla tbody tr").forEach(fila => {
+        fila.style.display = fila.textContent.toLowerCase().includes(filtro) ? "" : "none";
+      });
+    });
+  </script>
+
+</body>
+</html>
