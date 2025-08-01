@@ -3,248 +3,187 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Base de Datos de Personal</title>
+  <title>Plataforma de Personal</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 10px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
       margin: 0;
-      max-width: 900px;
-      margin: auto;
+      padding: 20px;
+      color: #333;
     }
-    h2, h3 {
+
+    h1 {
+      color: #800000;
       text-align: center;
     }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0;
-      font-size: 16px;
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
+
+    form input, form select {
+      padding: 8px;
+      margin: 6px 0;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    form button {
+      background-color: #800000;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 14px;
+      margin-top: 30px;
     }
+
     th, td {
       border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    thead {
+      background-color: #800000;
+      color: white;
+    }
+
+    select {
+      border-radius: 6px;
       padding: 6px;
-      text-align: left;
     }
-    .turno-Mañana { background-color: #e3fcef; }
-    .turno-Tarde { background-color: #fff7d6; }
-    .turno-Noche { background-color: #fde2e2; }
-    .acciones button {
-      margin-right: 5px;
+
+    .btn-descarga {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #800000;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
     }
-    @media (max-width: 600px) {
-      td::before {
-        font-weight: bold;
-        white-space: nowrap;
+
+    .btn-descarga:hover {
+      background-color: #a00000;
+    }
+
+    @media (max-width: 768px) {
+      form input, form select {
+        font-size: 16px;
       }
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-      tr {
-        margin-bottom: 15px;
-        border-bottom: 2px solid #ccc;
-      }
-      td {
-        position: relative;
-        padding-left: 50%;
+      table {
+        font-size: 14px;
       }
     }
   </style>
 </head>
 <body>
+  <h1>Plataforma de Registro de Personal</h1>
 
-  <h2>Formulario de Registro de Personal</h2>
+  <form id="formulario">
+    <label>Nombre:</label>
+    <input type="text" id="nombre" required />
+    <label>Edad:</label>
+    <input type="number" id="edad" required />
+    <label>Correo electrónico:</label>
+    <input type="email" id="correo" required />
+    <label>Celular:</label>
+    <input type="text" id="numero" required />
+    <label>ID:</label>
+    <input type="text" id="id" required />
+    <label>Turno:</label>
+    <input type="text" id="turno" required />
+    <label>Zona:</label>
+    <input type="text" id="zona" required />
+    <label>Uniforme:</label>
+    <select id="uniforme">
+      <option value="✅ Recibido">✅ Recibido</option>
+      <option value="❌ No recibido">❌ No recibido</option>
+    </select>
+    <button type="submit">Agregar a la tabla</button>
+  </form>
 
-  <input type="text" id="nombre" placeholder="Nombre" />
-  <input type="number" id="edad" placeholder="Edad" />
-  <input type="email" id="correo" placeholder="Correo electrónico" />
-  <input type="tel" id="celular" placeholder="Número de celular" />
-  <input type="text" id="id" placeholder="ID" />
-  <select id="turno">
-    <option value="">Selecciona Turno</option>
-    <option value="Mañana">Mañana</option>
-    <option value="Tarde">Tarde</option>
-    <option value="Noche">Noche</option>
-  </select>
-  <input type="text" id="zona" placeholder="Zona" />
-  <button onclick="agregarFila()">Agregar</button>
-
-  <h3>Buscar</h3>
-  <input type="text" id="buscador" placeholder="Buscar por nombre, ID, zona...">
-  <p id="contador"></p>
-
-  <button onclick="descargarExcel()">📥 Descargar Excel</button>
-  <button onclick="descargarPDF()">📥 Descargar PDF</button>
-
-  <table id="tabla">
+  <table id="tabla-personal">
     <thead>
       <tr>
+        <th>ID</th>
         <th>Nombre</th>
         <th>Edad</th>
         <th>Correo</th>
         <th>Celular</th>
-        <th>ID</th>
         <th>Turno</th>
         <th>Zona</th>
-        <th>Acciones</th>
+        <th>Uniforme</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody>
+      <!-- Datos se agregarán aquí -->
+    </tbody>
   </table>
 
-  <!-- Librerías -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <a class="btn-descarga" onclick="descargarExcel()">📥 Descargar en Excel</a>
 
   <script>
-    let editando = null;
+    const formulario = document.getElementById('formulario');
+    const tabla = document.querySelector('#tabla-personal tbody');
 
-    function agregarFila() {
-      const datos = {
-        nombre: document.getElementById("nombre").value.trim(),
-        edad: document.getElementById("edad").value.trim(),
-        correo: document.getElementById("correo").value.trim(),
-        celular: document.getElementById("celular").value.trim(),
-        id: document.getElementById("id").value.trim(),
-        turno: document.getElementById("turno").value,
-        zona: document.getElementById("zona").value.trim()
-      };
+    formulario.addEventListener('submit', function (e) {
+      e.preventDefault();
 
-      if (Object.values(datos).some(v => v === "")) {
-        alert("Completa todos los campos.");
-        return;
-      }
+      const id = document.getElementById('id').value;
+      const nombre = document.getElementById('nombre').value;
+      const edad = document.getElementById('edad').value;
+      const correo = document.getElementById('correo').value;
+      const numero = document.getElementById('numero').value;
+      const turno = document.getElementById('turno').value;
+      const zona = document.getElementById('zona').value;
+      const uniforme = document.getElementById('uniforme').value;
 
-      if (editando) {
-        for (let i = 0; i < 7; i++) {
-          editando.cells[i].textContent = Object.values(datos)[i];
-        }
-        editando.className = `turno-${datos.turno}`;
-        editando = null;
-      } else {
-        const fila = document.createElement("tr");
-        fila.className = `turno-${datos.turno}`;
-        Object.values(datos).forEach(valor => {
-          const td = document.createElement("td");
-          td.textContent = valor;
-          fila.appendChild(td);
-        });
-        const acciones = document.createElement("td");
-        acciones.classList.add("acciones");
-        acciones.innerHTML = `
-          <button onclick="editarFila(this)">✏️</button>
-          <button onclick="eliminarFila(this)">🗑️</button>`;
-        fila.appendChild(acciones);
-        document.querySelector("#tabla tbody").appendChild(fila);
-      }
+      const fila = tabla.insertRow();
+      fila.innerHTML = `
+        <td>${id}</td>
+        <td>${nombre}</td>
+        <td>${edad}</td>
+        <td>${correo}</td>
+        <td>${numero}</td>
+        <td>${turno}</td>
+        <td>${zona}</td>
+        <td>
+          <select>
+            <option ${uniforme === '✅ Recibido' ? 'selected' : ''}>✅ Recibido</option>
+            <option ${uniforme === '❌ No recibido' ? 'selected' : ''}>❌ No recibido</option>
+          </select>
+        </td>
+      `;
 
-      guardarDatos();
-      limpiarCampos();
-      actualizarContador();
-    }
-
-    function limpiarCampos() {
-      ["nombre", "edad", "correo", "celular", "id", "turno", "zona"].forEach(id => {
-        document.getElementById(id).value = "";
-      });
-    }
-
-    function editarFila(btn) {
-      const fila = btn.closest("tr");
-      editando = fila;
-      ["nombre", "edad", "correo", "celular", "id", "turno", "zona"].forEach((campo, i) => {
-        document.getElementById(campo).value = fila.cells[i].textContent;
-      });
-      window.scrollTo(0, 0);
-    }
-
-    function eliminarFila(btn) {
-      if (confirm("¿Seguro que deseas eliminar este registro?")) {
-        const fila = btn.closest("tr");
-        fila.remove();
-        guardarDatos();
-        actualizarContador();
-      }
-    }
-
-    document.getElementById("buscador").addEventListener("keyup", function () {
-      const filtro = this.value.toLowerCase();
-      document.querySelectorAll("#tabla tbody tr").forEach(fila => {
-        fila.style.display = fila.textContent.toLowerCase().includes(filtro) ? "" : "none";
-      });
+      formulario.reset();
     });
 
-    function actualizarContador() {
-      const total = document.querySelectorAll("#tabla tbody tr").length;
-      document.getElementById("contador").textContent = `Registros totales: ${total}`;
-    }
-
-    function guardarDatos() {
-      const filas = document.querySelectorAll("#tabla tbody tr");
-      const datos = [];
-      filas.forEach(fila => {
-        const celdas = fila.querySelectorAll("td");
-        datos.push({
-          nombre: celdas[0].textContent,
-          edad: celdas[1].textContent,
-          correo: celdas[2].textContent,
-          celular: celdas[3].textContent,
-          id: celdas[4].textContent,
-          turno: celdas[5].textContent,
-          zona: celdas[6].textContent
-        });
-      });
-      localStorage.setItem("personal", JSON.stringify(datos));
-    }
-
-    function cargarDatos() {
-      const datos = JSON.parse(localStorage.getItem("personal") || "[]");
-      datos.forEach(d => {
-        const fila = document.createElement("tr");
-        fila.className = `turno-${d.turno}`;
-        Object.values(d).forEach(valor => {
-          const td = document.createElement("td");
-          td.textContent = valor;
-          fila.appendChild(td);
-        });
-        const acciones = document.createElement("td");
-        acciones.classList.add("acciones");
-        acciones.innerHTML = `
-          <button onclick="editarFila(this)">✏️</button>
-          <button onclick="eliminarFila(this)">🗑️</button>`;
-        fila.appendChild(acciones);
-        document.querySelector("#tabla tbody").appendChild(fila);
-      });
-      actualizarContador();
-    }
-
     function descargarExcel() {
-      const tabla = document.getElementById("tabla");
-      const wb = XLSX.utils.table_to_book(tabla, { sheet: "Personal" });
-      XLSX.writeFile(wb, "personal.xlsx");
+      let contenido = "data:application/vnd.ms-excel,";
+      contenido += document.getElementById('tabla-personal').outerHTML;
+      const enlace = document.createElement('a');
+      enlace.href = contenido;
+      enlace.download = 'personal.xlsx';
+      enlace.click();
     }
-
-    async function descargarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.text("Registros de Personal", 10, 10);
-      let y = 20;
-      document.querySelectorAll("#tabla tbody tr").forEach(fila => {
-        const datos = Array.from(fila.cells).slice(0, 7).map(c => c.textContent).join(" | ");
-        doc.text(datos, 10, y);
-        y += 8;
-      });
-      doc.save("personal.pdf");
-    }
-
-    // Cargar al iniciar
-    window.onload = cargarDatos;
   </script>
 </body>
 </html>
