@@ -1,42 +1,96 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Base de Datos de Personal</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Formulario de Personal</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input { margin: 5px 0; padding: 6px; width: 100%; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    #buscador { margin-top: 15px; padding: 10px; width: 100%; font-size: 16px; }
-    button { padding: 10px 15px; margin-top: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      margin: 0;
+      max-width: 800px;
+      margin: auto;
+    }
+    h2, h3 {
+      text-align: center;
+    }
+    input, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: left;
+    }
+    #buscador {
+      margin-top: 10px;
+    }
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      tr {
+        margin-bottom: 15px;
+        border-bottom: 2px solid #ccc;
+      }
+      td {
+        position: relative;
+        padding-left: 50%;
+      }
+      td::before {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 45%;
+        font-weight: bold;
+        white-space: nowrap;
+      }
+      td:nth-of-type(1)::before { content: "Nombre"; }
+      td:nth-of-type(2)::before { content: "Edad"; }
+      td:nth-of-type(3)::before { content: "Correo"; }
+      td:nth-of-type(4)::before { content: "Celular"; }
+      td:nth-of-type(5)::before { content: "ID"; }
+      td:nth-of-type(6)::before { content: "Turno"; }
+      td:nth-of-type(7)::before { content: "Zona"; }
+    }
   </style>
 </head>
 <body>
 
   <h2>Formulario de Registro de Personal</h2>
 
-  <div>
-    <input type="text" id="nombre" placeholder="Nombre">
-    <input type="number" id="edad" placeholder="Edad">
-    <input type="email" id="correo" placeholder="Correo electrónico">
-    <input type="tel" id="celular" placeholder="Número de celular">
-    <input type="text" id="id" placeholder="ID">
-    <input type="text" id="turno" placeholder="Turno">
-    <input type="text" id="zona" placeholder="Zona">
-    <button onclick="agregarPersonal()">Agregar</button>
-  </div>
+  <input type="text" id="nombre" placeholder="Nombre" />
+  <input type="number" id="edad" placeholder="Edad" />
+  <input type="email" id="correo" placeholder="Correo electrónico" />
+  <input type="tel" id="celular" placeholder="Número de celular" />
+  <input type="text" id="id" placeholder="ID" />
+  <input type="text" id="turno" placeholder="Turno" />
+  <input type="text" id="zona" placeholder="Zona" />
+  <button onclick="agregarFila()">Agregar</button>
 
-  <h3>Buscar personal</h3>
-  <input type="text" id="buscador" placeholder="Buscar por nombre, zona, ID, etc.">
+  <h3>Buscar</h3>
+  <input type="text" id="buscador" placeholder="Buscar por nombre, ID, zona...">
+
+  <button onclick="descargarExcel()">Descargar Excel</button>
 
   <table id="tabla">
     <thead>
       <tr>
         <th>Nombre</th>
         <th>Edad</th>
-        <th>Correo electrónico</th>
-        <th>Número de celular</th>
+        <th>Correo</th>
+        <th>Celular</th>
         <th>ID</th>
         <th>Turno</th>
         <th>Zona</th>
@@ -45,41 +99,46 @@
     <tbody></tbody>
   </table>
 
-  <script>
-    function agregarPersonal() {
-      const datos = [
-        "nombre", "edad", "correo", "celular",
-        "id", "turno", "zona"
-      ].map(id => document.getElementById(id).value.trim());
+  <!-- Librería SheetJS para exportar a Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-      if (datos.some(d => d === "")) {
-        alert("Por favor llena todos los campos.");
+  <script>
+    function agregarFila() {
+      const campos = ["nombre", "edad", "correo", "celular", "id", "turno", "zona"];
+      const valores = campos.map(id => document.getElementById(id).value.trim());
+
+      if (valores.some(v => v === "")) {
+        alert("Por favor completa todos los campos.");
         return;
       }
 
-      const fila = document.createElement("tr");
-      datos.forEach(dato => {
+      const tr = document.createElement("tr");
+      valores.forEach(valor => {
         const td = document.createElement("td");
-        td.textContent = dato;
-        fila.appendChild(td);
+        td.textContent = valor;
+        tr.appendChild(td);
       });
 
-      document.querySelector("#tabla tbody").appendChild(fila);
+      document.querySelector("#tabla tbody").appendChild(tr);
 
       // Limpiar campos
-      datos.forEach((_, i) => document.getElementById([
-        "nombre", "edad", "correo", "celular",
-        "id", "turno", "zona"
-      ][i]).value = "");
+      campos.forEach(id => document.getElementById(id).value = "");
     }
 
-    // Buscador en tiempo real
+    // Buscador en vivo
     document.getElementById("buscador").addEventListener("keyup", function () {
       const filtro = this.value.toLowerCase();
       document.querySelectorAll("#tabla tbody tr").forEach(fila => {
         fila.style.display = fila.textContent.toLowerCase().includes(filtro) ? "" : "none";
       });
     });
+
+    // Descargar como archivo Excel
+    function descargarExcel() {
+      const tabla = document.getElementById("tabla");
+      const wb = XLSX.utils.table_to_book(tabla, { sheet: "Personal" });
+      XLSX.writeFile(wb, "personal.xlsx");
+    }
   </script>
 
 </body>
