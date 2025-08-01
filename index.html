@@ -3,23 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Formulario de Personal</title>
+  <title>Base de Datos de Personal</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 10px;
       margin: 0;
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
     }
     h2, h3 {
       text-align: center;
     }
-    input, button, textarea {
+    input, button {
       width: 100%;
       padding: 10px;
-      margin: 6px 0;
-      box-sizing: border-box;
+      margin: 5px 0;
       font-size: 16px;
     }
     table {
@@ -33,10 +32,17 @@
       padding: 6px;
       text-align: left;
     }
-    #buscador {
-      margin-top: 10px;
+    .turno-Mañana { background-color: #e3fcef; }
+    .turno-Tarde { background-color: #fff7d6; }
+    .turno-Noche { background-color: #fde2e2; }
+    .acciones button {
+      margin-right: 5px;
     }
     @media (max-width: 600px) {
+      td::before {
+        font-weight: bold;
+        white-space: nowrap;
+      }
       table, thead, tbody, th, td, tr {
         display: block;
       }
@@ -48,21 +54,6 @@
         position: relative;
         padding-left: 50%;
       }
-      td::before {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        width: 45%;
-        font-weight: bold;
-        white-space: nowrap;
-      }
-      td:nth-of-type(1)::before { content: "Nombre"; }
-      td:nth-of-type(2)::before { content: "Edad"; }
-      td:nth-of-type(3)::before { content: "Correo"; }
-      td:nth-of-type(4)::before { content: "Celular"; }
-      td:nth-of-type(5)::before { content: "ID"; }
-      td:nth-of-type(6)::before { content: "Turno"; }
-      td:nth-of-type(7)::before { content: "Zona"; }
     }
   </style>
 </head>
@@ -75,14 +66,21 @@
   <input type="email" id="correo" placeholder="Correo electrónico" />
   <input type="tel" id="celular" placeholder="Número de celular" />
   <input type="text" id="id" placeholder="ID" />
-  <input type="text" id="turno" placeholder="Turno" />
+  <select id="turno">
+    <option value="">Selecciona Turno</option>
+    <option value="Mañana">Mañana</option>
+    <option value="Tarde">Tarde</option>
+    <option value="Noche">Noche</option>
+  </select>
   <input type="text" id="zona" placeholder="Zona" />
   <button onclick="agregarFila()">Agregar</button>
 
   <h3>Buscar</h3>
   <input type="text" id="buscador" placeholder="Buscar por nombre, ID, zona...">
+  <p id="contador"></p>
 
-  <button onclick="descargarExcel()">Descargar Excel</button>
+  <button onclick="descargarExcel()">📥 Descargar Excel</button>
+  <button onclick="descargarPDF()">📥 Descargar PDF</button>
 
   <table id="tabla">
     <thead>
@@ -94,38 +92,87 @@
         <th>ID</th>
         <th>Turno</th>
         <th>Zona</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <!-- Librería SheetJS para exportar a Excel -->
+  <!-- Librerías -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script>
-    function agregarFila() {
-      const campos = ["nombre", "edad", "correo", "celular", "id", "turno", "zona"];
-      const valores = campos.map(id => document.getElementById(id).value.trim());
+    let editando = null;
 
-      if (valores.some(v => v === "")) {
-        alert("Por favor completa todos los campos.");
+    function agregarFila() {
+      const datos = {
+        nombre: document.getElementById("nombre").value.trim(),
+        edad: document.getElementById("edad").value.trim(),
+        correo: document.getElementById("correo").value.trim(),
+        celular: document.getElementById("celular").value.trim(),
+        id: document.getElementById("id").value.trim(),
+        turno: document.getElementById("turno").value,
+        zona: document.getElementById("zona").value.trim()
+      };
+
+      if (Object.values(datos).some(v => v === "")) {
+        alert("Completa todos los campos.");
         return;
       }
 
-      const tr = document.createElement("tr");
-      valores.forEach(valor => {
-        const td = document.createElement("td");
-        td.textContent = valor;
-        tr.appendChild(td);
-      });
+      if (editando) {
+        for (let i = 0; i < 7; i++) {
+          editando.cells[i].textContent = Object.values(datos)[i];
+        }
+        editando.className = `turno-${datos.turno}`;
+        editando = null;
+      } else {
+        const fila = document.createElement("tr");
+        fila.className = `turno-${datos.turno}`;
+        Object.values(datos).forEach(valor => {
+          const td = document.createElement("td");
+          td.textContent = valor;
+          fila.appendChild(td);
+        });
+        const acciones = document.createElement("td");
+        acciones.classList.add("acciones");
+        acciones.innerHTML = `
+          <button onclick="editarFila(this)">✏️</button>
+          <button onclick="eliminarFila(this)">🗑️</button>`;
+        fila.appendChild(acciones);
+        document.querySelector("#tabla tbody").appendChild(fila);
+      }
 
-      document.querySelector("#tabla tbody").appendChild(tr);
-
-      // Limpiar campos
-      campos.forEach(id => document.getElementById(id).value = "");
+      guardarDatos();
+      limpiarCampos();
+      actualizarContador();
     }
 
-    // Buscador en vivo
+    function limpiarCampos() {
+      ["nombre", "edad", "correo", "celular", "id", "turno", "zona"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+    }
+
+    function editarFila(btn) {
+      const fila = btn.closest("tr");
+      editando = fila;
+      ["nombre", "edad", "correo", "celular", "id", "turno", "zona"].forEach((campo, i) => {
+        document.getElementById(campo).value = fila.cells[i].textContent;
+      });
+      window.scrollTo(0, 0);
+    }
+
+    function eliminarFila(btn) {
+      if (confirm("¿Seguro que deseas eliminar este registro?")) {
+        const fila = btn.closest("tr");
+        fila.remove();
+        guardarDatos();
+        actualizarContador();
+      }
+    }
+
     document.getElementById("buscador").addEventListener("keyup", function () {
       const filtro = this.value.toLowerCase();
       document.querySelectorAll("#tabla tbody tr").forEach(fila => {
@@ -133,13 +180,71 @@
       });
     });
 
-    // Descargar como archivo Excel
+    function actualizarContador() {
+      const total = document.querySelectorAll("#tabla tbody tr").length;
+      document.getElementById("contador").textContent = `Registros totales: ${total}`;
+    }
+
+    function guardarDatos() {
+      const filas = document.querySelectorAll("#tabla tbody tr");
+      const datos = [];
+      filas.forEach(fila => {
+        const celdas = fila.querySelectorAll("td");
+        datos.push({
+          nombre: celdas[0].textContent,
+          edad: celdas[1].textContent,
+          correo: celdas[2].textContent,
+          celular: celdas[3].textContent,
+          id: celdas[4].textContent,
+          turno: celdas[5].textContent,
+          zona: celdas[6].textContent
+        });
+      });
+      localStorage.setItem("personal", JSON.stringify(datos));
+    }
+
+    function cargarDatos() {
+      const datos = JSON.parse(localStorage.getItem("personal") || "[]");
+      datos.forEach(d => {
+        const fila = document.createElement("tr");
+        fila.className = `turno-${d.turno}`;
+        Object.values(d).forEach(valor => {
+          const td = document.createElement("td");
+          td.textContent = valor;
+          fila.appendChild(td);
+        });
+        const acciones = document.createElement("td");
+        acciones.classList.add("acciones");
+        acciones.innerHTML = `
+          <button onclick="editarFila(this)">✏️</button>
+          <button onclick="eliminarFila(this)">🗑️</button>`;
+        fila.appendChild(acciones);
+        document.querySelector("#tabla tbody").appendChild(fila);
+      });
+      actualizarContador();
+    }
+
     function descargarExcel() {
       const tabla = document.getElementById("tabla");
       const wb = XLSX.utils.table_to_book(tabla, { sheet: "Personal" });
       XLSX.writeFile(wb, "personal.xlsx");
     }
-  </script>
 
+    async function descargarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Registros de Personal", 10, 10);
+      let y = 20;
+      document.querySelectorAll("#tabla tbody tr").forEach(fila => {
+        const datos = Array.from(fila.cells).slice(0, 7).map(c => c.textContent).join(" | ");
+        doc.text(datos, 10, y);
+        y += 8;
+      });
+      doc.save("personal.pdf");
+    }
+
+    // Cargar al iniciar
+    window.onload = cargarDatos;
+  </script>
 </body>
 </html>
